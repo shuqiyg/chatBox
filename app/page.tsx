@@ -1,112 +1,141 @@
+"use client"
+
 import Image from 'next/image'
+import useState from 'react-usestateref'
+import userPic from '../public/user.png'
+import botPic from '../public/gptBot.png'
+
+enum Creator {
+  User = 0,
+  Bot = 1,
+}
+
+interface MessageProps {
+  text: string;
+  from: Creator;
+  key: number;
+}
+
+interface InputProps {
+  onSend: (input: string) => void;
+  disabled: boolean;
+}
+
+// single message component in the chat
+const ChatMessage = ( { text, from }: MessageProps) => {
+  return (
+    <>
+      {from == Creator.User && (
+        <div className='bg-white p-4 rounded-lg flex gap-4 items-center whitespace-pre-wrap'>
+          <Image src={userPic} alt="User" width={40} height={50}></Image>
+          <p className='text-gray-700'>{text}</p>
+        </div>
+      )}
+      {from == Creator.Bot && (
+        <div className='bg-gray-100 p-4 rounded-lg flex gap-4 items-center whitespace-pre-wrap'>
+          <Image src={botPic} alt='User' width={40}></Image>
+          <p className='text-gray-700'>{text}</p>
+        </div>
+      )}
+    </>
+  )
+}
+
+//chat input filed
+const ChatInput = ({ onSend, disabled }: InputProps ) => {
+  const [input, setInput] = useState('');
+
+  const sendInput = () => {
+    onSend(input);
+    setInput('');
+  }
+
+  const handleKeyDown = (event: any) => {
+    if(event.keyCode === 13) {
+      sendInput();
+    }
+  }
+
+  return (
+    <div className='bg-white border-2 p-2 rounded-lg flex justify-center'>
+      <input 
+        type="text"
+        value={input}
+        onChange={(event: any) => setInput(event.target.value)}
+        className='w-full py-2 px-3 text-gray-800 rounded-lg focus:outline-none'
+        placeholder="Please feel free to ask"
+        disabled={disabled} 
+        onKeyDown={(ev) => handleKeyDown(ev)}
+      />
+      {disabled && (
+        <svg>
+          <path></path>
+          <path></path>
+        </svg>
+      )}
+      {!disabled && (
+        <button
+          onClick={() => sendInput()}
+          className='p-2 rounded-md text-gray-500 bottom-1.5 right-1'
+        >
+          <svg>
+            <path></path>
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+}
 
 export default function Home() {
+  const [messages, setMessages, messagesRef] = useState<MessageProps[]>([]);
+  const [loading, setLoading]= useState(false);
+
+  const callApi = async (input: string) => {
+    setLoading(true);
+    
+    const myMessage: MessageProps = {
+      text: input,
+      from: Creator.User,
+      key: new Date().getTime()
+    };
+
+    setMessages([...messagesRef.current, myMessage]);
+    const response = await fetch('/api/generate-answer', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: input
+      })
+    }).then((res)=> res.json());
+    setLoading(false);
+
+    if(response.text){
+      const botMessage: MessageProps = {
+        text: response.text,
+        from: Creator.Bot,
+        key: new Date().getTime()
+      };
+      setMessages([...messagesRef.current, botMessage])
+    }else{
+      // show error
+      console.log("Error getting response from OpenAI.")
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <main className="relative max-w-2xl mx-auto">
+      <div className='sticky top-0 w-full pt-10 px-4'>
+        <ChatInput onSend={(input) => callApi(input)} disabled={loading}></ChatInput>
       </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <div className='mt-10 px-4'>
+        {messages.map((msg: MessageProps) => (
+          <ChatMessage key={msg.key} text={msg.text} from={msg.from}></ChatMessage>
+        ))}
+        {messages.length == 0 && <p className='text-center text-gray-400'>Waiting for your prompt...</p>}
       </div>
     </main>
   )
