@@ -1,1 +1,1 @@
-![alt screenShot](public/screenShot.gif)
+![alt screenShot](public/gptChatBox.gif)
