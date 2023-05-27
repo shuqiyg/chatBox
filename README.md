@@ -1,1 +1,1 @@
-![alt screenShot](public/Screenshot.png)
+![alt screenShot](public/screenShot.gif)
