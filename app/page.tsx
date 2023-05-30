@@ -138,6 +138,12 @@ export default function Home() {
         <ChatInput onSend={(input) => callApi(input)} disabled={loading}></ChatInput>
       </div>
 
+      <div className='text-center pt-5 mb-2'>
+        <button onClick={()=>(setMessages([]))} className='bg-slate-200'>
+          Restart the conversation
+        </button>
+      </div>
+
       <div className='mt-10 px-4'>
         {messages.map((msg: MessageProps) => (
           <ChatMessage key={msg.key} text={msg.text} from={msg.from}></ChatMessage>
