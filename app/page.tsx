@@ -138,8 +138,8 @@ export default function Home() {
         <ChatInput onSend={(input) => callApi(input)} disabled={loading}></ChatInput>
       </div>
 
-      <div className='text-center pt-5 mb-2'>
-        <button onClick={()=>(setMessages([]))} className='bg-slate-200'>
+      <div className='text-center pt-5 mb-2 '>
+        <button onClick={()=>(setMessages([]))} className='bg-slate-200 border border-slate-300 py-1 px-3 rounded'>
           Restart the conversation
         </button>
       </div>
