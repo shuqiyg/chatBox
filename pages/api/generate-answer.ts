@@ -23,21 +23,21 @@ export default async function handler(
     const prompt = req.body.prompt;
     console.log("p: " ,req.body)
     if(!prompt || prompt === ''){
-        return new Response('Please send your prompt', { status: 400 });
+        res.status(400).json({ text: "Please ask me anything so I can help."})
     }
 
     //beta.openai.com/docs/api-reference/completions/create
-    // const aiResult = await openai.createCompletion({
-    //     model: 'text-davinci-003',
-    //     prompt: `${prompt}`,
-    //     temperature: .9,  //higher values means model willtake more risks
-    //     max_tokens: 2048, //maximum number of tokens to generate in the completion
-    //     frequency_penalty: .5, //number between -2.0 and 2.0
-    //     presence_penalty: 0  // number between -2.0 and 2.0
-    // });
+    const aiResult = await openai.createCompletion({
+        model: 'text-davinci-003',
+        prompt: `${prompt}`,
+        temperature: .9,  //higher values means model willtake more risks
+        max_tokens: 2048, //maximum number of tokens to generate in the completion
+        frequency_penalty: .5, //number between -2.0 and 2.0
+        presence_penalty: 0  // number between -2.0 and 2.0
+    });
 
-    // const response = aiResult.data.choices[0].text?.trim() || 'Something goes wrong, error!'
-    res.status(200).json({ text: "This is a test response from the API."});
+    const response = aiResult.data.choices[0].text?.trim() || 'Something goes wrong, error!'
+    // res.status(200).json({ text: "fdf"});
     // return new Response(JSON.stringify(response), { status: 201 })
-    // res.status(200).json({ text: response})
+    res.status(200).json({ text: response})
 }
