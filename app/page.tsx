@@ -139,7 +139,10 @@ export default function Home() {
       </div>
 
       <div className='text-center pt-5 mb-2 '>
-        <button onClick={()=>(setMessages([]))} className='bg-slate-200 border border-slate-300 py-1 px-3 rounded'>
+        <button onClick={()=>{
+          setMessages([]);
+          setLoading(false)
+          }} className='bg-slate-200 border border-slate-300 py-1 px-3 rounded'>
           Restart the conversation
         </button>
       </div>
